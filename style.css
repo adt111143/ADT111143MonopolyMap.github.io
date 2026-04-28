@@ -1,0 +1,223 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --grid-size: 85px; /* 地圖變小了，格子可以稍微放大一點點 */
+    --transition-speed: 0.5s;
+}
+
+body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    background: black; /* 外圍黑底，模擬直式銀幕 */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* 模擬直式網頁視窗 (對應你的截圖) */
+#game-viewport {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: #bc6464;
+    overflow: hidden;
+    perspective: 1000px; /* 創造 3D 深度 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 左側庫存面板 */
+#inventory-panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 50;
+    transform: scale(0.85);
+    transform-origin: top left;
+}
+
+#inventory-list { list-style: none; font-size: 14px; }
+#inventory-list li { margin-bottom: 6px; display: flex; justify-content: space-between; gap: 10px;}
+
+/* 3D 場景與跟隨視角 */
+#scene-container {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform var(--transition-speed) ease-out;
+    /* 預設傾斜角度與放大比例 */
+    transform: scale(1.2) rotateX(60deg) rotateZ(-45deg);
+}
+
+/* 大富翁地圖本體 */
+#monopoly-board {
+    /* 改為 4x4 的外框 (對應 12 格) */
+    width: calc(4 * var(--grid-size)); 
+    height: calc(4 * var(--grid-size));
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    transform-style: preserve-3d;
+}
+
+/* 每個格子 */
+.square {
+    width: var(--grid-size);
+    height: var(--grid-size);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #34495e;
+    border-radius: 8px;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 3px 3px 0px rgba(0,0,0,0.2);
+}
+
+/* 玩家旗子 */
+#player-flag {
+    width: calc(var(--grid-size) * 0.8);
+    height: calc(var(--grid-size) * 0.8);
+    position: absolute;
+    transform-style: preserve-3d;
+    transition: left var(--transition-speed) ease-out, top var(--transition-speed) ease-out;
+    z-index: 100;
+    pointer-events: none;
+}
+
+#player-flag img {
+    width: auto;
+    height: 100%;
+    /* 核心：反向旋轉，讓 2D 圖片在傾斜地圖上「站立」起來 */
+    transform: rotateZ(45deg) rotateX(-60deg) translateY(-30%);
+    transform-origin: bottom center;
+}
+
+/* 底部控制面板 */
+#control-panel {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 100;
+    width: 100%;
+}
+
+/* 骰子排列與動畫 */
+.dice-display { display: flex; gap: 10px; }
+.die {
+    width: 45px; height: 45px;
+    background: white; border-radius: 8px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px; font-weight: bold; color: black;
+    box-shadow: 0 4px 0 #ccc;
+}
+.die.rolling { animation: rollDice 0.2s linear infinite; }
+@keyframes rollDice {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    25% { transform: translate(-1px, -2px) rotate(-10deg); }
+    50% { transform: translate(-3px, 0px) rotate(10deg); }
+    75% { transform: translate(3px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -1px) rotate(0deg); }
+}
+
+.main-buttons { display: flex; gap: 10px; }
+button {
+    padding: 10px 15px; border: none; border-radius: 5px;
+    font-size: 15px; font-weight: bold; cursor: pointer; color: white;
+}
+.secondary-btn { background: #3498db; }
+
+
+/* --- 骰子可點擊互動設計 --- */
+#dice-container { 
+    cursor: pointer; 
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+#dice-container:hover { transform: scale(1.1); }
+#dice-container:active { transform: scale(0.95); }
+
+
+/* --- 彈出框 (Modal) 設計 --- */
+.hidden { display: none !important; }
+
+.modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); z-index: 200;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.modal-box {
+    background: white; color: #333; padding: 30px; border-radius: 15px;
+    text-align: center; width: 85%; max-width: 320px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transform: scale(1); 
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-icon { font-size: 60px; margin-bottom: 10px; }
+#modal-title { font-size: 24px; margin-bottom: 10px; color: #e67e22; }
+#modal-message { font-size: 18px; margin-bottom: 25px; font-weight: bold; color: #2c3e50; line-height: 1.5; }
+
+.modal-actions { display: flex; flex-direction: column; gap: 12px; }
+
+.secondary-btn {
+    background: transparent; color: #7f8c8d; border: 2px solid #bdc3c7;
+    padding: 10px; font-size: 15px; font-weight: bold; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s;
+}
+.secondary-btn:hover { background: #f1f2f6; color: #2c3e50; }
+
+
+/* --- 庫存管理按鈕 (左上角) --- */
+#inventory-toggle-btn {
+    position: absolute; top: 20px; left: 20px; z-index: 150;
+    background: transparent; border: none; height: 70px; padding: 0;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+#inventory-toggle-btn:hover { transform: translateY(-2px); }
+#inventory-toggle-btn img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+/* --- 庫存面板樣式 --- */
+/* --- 庫存清單與增減按鈕 (適應白底框) --- */
+#inventory-list { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+#inventory-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; border-bottom: 1px solid #f1f2f6; padding: 6px 0;
+}
+
+.item-name { flex: 1; font-weight: bold; color: #2c3e50; }
+.item-controls { display: flex; align-items: center; gap: 8px; }
+
+.ctrl-btn {
+    background: transparent; color: #bdc3c7; border: 2px solid #bdc3c7;
+    border-radius: 4px; width: 26px; height: 26px; font-weight: bold; font-size: 16px; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; transition: all 0.1s;
+}
+.ctrl-btn:hover { background: #fdf2e9; color: #e67e22; border-color: #e67e22; }
+.ctrl-btn:active { transform: scale(0.9); }
+.ctrl-btn:disabled { color: #eee; border-color: #eee; cursor: not-allowed; opacity: 0.5; }
+
+.item-count { width: 28px; text-align: center; font-weight: bold; font-size: 16px; color: #333; }

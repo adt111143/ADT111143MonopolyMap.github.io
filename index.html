@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 大富翁抽獎</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-viewport">
+
+        <button id="inventory-toggle-btn" class="icon-btn"><img src="images/box.png" alt="箱子"></button>
+
+        <div id="inventory-modal-overlay" class="modal-overlay hidden">
+            <div class="modal-box" style="padding: 20px;">
+                <ul id="inventory-list" style="color: #333; text-align: left; list-style: none; padding: 0;">
+                    </ul>
+            </div>
+        </div>
+
+        <div id="scene-container">
+            <div id="monopoly-board">
+                <div id="player-flag">
+                    <img src="images/flag.png" alt="旗子">
+                </div>
+            </div>
+        </div>
+
+        <footer id="control-panel">
+            <div class="dice-display" id="dice-container" title="點擊擲骰子">
+                <div class="die" id="die1">1</div>
+                <div class="die" id="die2">1</div>
+            </div>
+        </footer>
+
+        <div id="prize-modal" class="modal-overlay hidden">
+            <div class="modal-box">
+                <h2 id="modal-title">恭喜中獎！</h2>
+                <p id="modal-message">獲得獎品</p>
+                <div class="modal-actions">
+                    <button id="modal-restart-btn" class="secondary-btn">GO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
